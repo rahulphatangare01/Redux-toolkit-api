@@ -1,52 +1,75 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 //  Create action
-// export const createUser = createAsyncThunk(
-//   "createUser",
-//   async (data, { rejectWithValue }) => {
-//     const response = await fetch(
-//       "https://6654056e1c6af63f467624aa.mockapi.io/Crud",
-//       {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify(data),
-//       }
-//     );
-//     try {
-//       const result = await response.json();
-//       return result;
-//     } catch (error) {
-//       rejectWithValue(error);
-//     }
-//   }
-// );
-// Create action with improved error handling
 export const createUser = createAsyncThunk(
   "createUser",
   async (data, { rejectWithValue }) => {
-    try {
-      const response = await fetch(
-        "https://6654056e1c6af63f467624aa.mockapi.io/Crud",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Error creating user: ${await response.text()}`);
+    const response = await fetch(
+      "https://6654056e1c6af63f467624aa.mockapi.io/Crud",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       }
-
+    );
+    try {
       const result = await response.json();
       return result;
     } catch (error) {
-      return rejectWithValue(error.message);
+      rejectWithValue(error);
     }
   }
 );
+
+export const showUser = createAsyncThunk(
+  "showUser",
+  async (args, { rejectWithValue }) => {
+    const response = await fetch(
+      "https://6654056e1c6af63f467624aa.mockapi.io/Crud",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    try {
+      const result = await response.json();
+      console.log(result);
+      return result;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+// Create action with improved error handling
+// export const createUser = createAsyncThunk(
+//   "createUser",
+//   async (data, { rejectWithValue }) => {
+//     try {
+//       const response = await fetch(
+//         "https://6654056e1c6af63f467624aa.mockapi.io/Crud",
+//         {
+//           method: "POST",
+//           headers: { "Content-Type": "application/json" },
+//           body: JSON.stringify(data),
+//         }
+//       );
+
+//       if (!response.ok) {
+//         throw new Error(`Error creating user: ${await response.text()}`);
+//       }
+
+//       const result = await response.json();
+//       return result;
+//     } catch (error) {
+//       return rejectWithValue(error.message);
+//     }
+//   }
+// );
 export const userDetail = createSlice({
   name: "userDetail",
   initialState: {
@@ -78,6 +101,18 @@ export const userDetail = createSlice({
         state.users.push(action.payload);
       })
       .addCase(createUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload; // Set error from rejected promise
+      })
+      .addCase(showUser.pending, (state) => {
+        state.loading = true;
+        state.error = null; // Reset error on new request
+      })
+      .addCase(showUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = action.payload;
+      })
+      .addCase(showUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload; // Set error from rejected promise
       });
