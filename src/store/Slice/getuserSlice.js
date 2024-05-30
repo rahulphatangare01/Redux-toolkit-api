@@ -69,14 +69,42 @@ export const deleteUser = createAsyncThunk(
   }
 );
 
+//  update action
+export const updateUser = createAsyncThunk(
+  "updateUser",
+  async (data, { rejectWithValue }) => {
+    const response = await fetch(
+      `https://6654056e1c6af63f467624aa.mockapi.io/Crud/${data.id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }
+    );
+    try {
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      rejectWithValue(error);
+    }
+  }
+);
+
 export const userDetail = createSlice({
   name: "userDetail",
   initialState: {
     users: [],
     loading: false,
     error: null,
+    searchData: [],
   },
-
+  reducers: {
+    searchUser: (state, action) => {
+      state.searchData = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(createUser.pending, (state) => {
@@ -117,11 +145,27 @@ export const userDetail = createSlice({
       .addCase(deleteUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(updateUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = state.users.map((ele) =>
+          ele.id === action.payload.id ? action.payload : ele
+        );
+        // state.users.push(action.payload);
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
 
 export default userDetail.reducer;
+export const { searchUser } = userDetail.actions;
 
 // extraReducers: {
 //   [createUser.pending]: (state) => {
